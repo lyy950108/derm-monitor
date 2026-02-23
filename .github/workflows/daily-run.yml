@@ -1,0 +1,93 @@
+# GitHub Actions: 每日定时抓取并推送皮肤科资讯
+# 使用此工作流可以免费在 GitHub 服务器上定时运行，无需自己的服务器
+
+name: Daily Derm Monitor
+
+on:
+  # 每天 UTC 0:00 (北京时间 08:00) 自动运行
+  schedule:
+    - cron: '0 0 * * *'
+  # 也支持手动触发
+  workflow_dispatch:
+
+jobs:
+  run-monitor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Create config from secrets
+        run: |
+          cat > config.yaml << 'EOF'
+          email:
+            smtp_server: "${{ secrets.SMTP_SERVER }}"
+            smtp_port: ${{ secrets.SMTP_PORT || 465 }}
+            use_ssl: true
+            sender: "${{ secrets.EMAIL_SENDER }}"
+            password: "${{ secrets.EMAIL_PASSWORD }}"
+            recipients:
+              - "${{ secrets.EMAIL_RECIPIENT }}"
+            subject_prefix: "【皮肤科资讯】"
+
+          translation:
+            provider: "google_free"
+
+          sources:
+            aad:
+              enabled: true
+            bad:
+              enabled: true
+            chinese_derm_society:
+              enabled: true
+            dermatology_times:
+              enabled: true
+            healio_dermatology:
+              enabled: true
+            yixuejie:
+              enabled: true
+            wechat:
+              enabled: true
+              accounts:
+                - name: "皮肤科杨希川教授"
+                  keyword: "皮肤科杨希川教授"
+                - name: "中华皮肤科杂志"
+                  keyword: "中华皮肤科杂志"
+
+          storage:
+            db_path: "data/seen_articles.json"
+            max_history: 5000
+
+          fetch:
+            timeout: 30
+            max_articles_per_source: 20
+            retry: 3
+            delay_between_requests: 2
+          EOF
+
+      - name: Restore seen articles cache
+        uses: actions/cache@v4
+        with:
+          path: data/
+          key: seen-articles-${{ github.run_number }}
+          restore-keys: |
+            seen-articles-
+
+      - name: Run Derm Monitor
+        run: python main.py
+
+      - name: Save seen articles cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/
+          key: seen-articles-${{ github.run_number }}

@@ -1,0 +1,76 @@
+# ============================================
+# 皮肤科信息聚合推送系统 - 配置文件
+# 复制此文件为 config.yaml 并填入你的信息
+# ============================================
+
+# --- 邮件推送配置 ---
+email:
+  smtp_server: "smtp.qq.com"          # SMTP 服务器 (QQ邮箱/163邮箱/Gmail等)
+  smtp_port: 465                       # 端口 (SSL: 465, TLS: 587)
+  use_ssl: true                        # 使用 SSL
+  sender: "your_email@qq.com"          # 发件人邮箱
+  password: "your_smtp_password"       # SMTP 授权码 (非邮箱密码)
+  recipients:                          # 收件人列表
+    - "recipient1@example.com"
+    - "recipient2@example.com"
+  subject_prefix: "【皮肤科资讯】"     # 邮件标题前缀
+
+# --- 翻译配置 ---
+translation:
+  # 可选: "google_free" (免费,有限制), "baidu", "deepl"
+  provider: "google_free"
+
+  # 百度翻译 API (如使用百度)
+  baidu:
+    app_id: ""
+    secret_key: ""
+
+  # DeepL API (如使用 DeepL)
+  deepl:
+    api_key: ""
+
+# --- 信息源开关 ---
+sources:
+  # 指南来源
+  aad:
+    enabled: true
+    url: "https://www.aad.org/member/clinical-quality/guidelines"
+  bad:
+    enabled: true
+    url: "https://www.bad.org.uk/clinical-standards/clinical-guidelines"
+  chinese_derm_society:
+    enabled: true
+    url: "https://www.csdcma.com/"
+
+  # 行业媒体
+  dermatology_times:
+    enabled: true
+    rss_url: "https://www.dermatologytimes.com/rss"
+  healio_dermatology:
+    enabled: true
+    rss_url: "https://www.healio.com/dermatology/rss"
+  yixuejie:
+    enabled: true
+    url: "https://www.medlive.cn/derma/listInfo.html"
+
+  # 微信公众号 (通过搜狗微信搜索)
+  wechat:
+    enabled: true
+    accounts:
+      - name: "皮肤科杨希川教授"
+        keyword: "皮肤科杨希川教授"
+      - name: "中华皮肤科杂志"
+        keyword: "中华皮肤科杂志"
+
+# --- 存储配置 ---
+storage:
+  db_path: "data/seen_articles.json"   # 已推送文章记录
+  max_history: 5000                     # 最大记录数
+
+# --- 抓取配置 ---
+fetch:
+  timeout: 30                           # 请求超时 (秒)
+  max_articles_per_source: 20           # 每个来源最大抓取数
+  user_agent: "DermMonitor/1.0 (Medical Research Bot)"
+  retry: 3                              # 失败重试次数
+  delay_between_requests: 2             # 请求间隔 (秒)
